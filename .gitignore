@@ -1,0 +1,22 @@
+# 任何凭据都不属于前台仓库
+.env
+.env.*
+**/.env
+**/.env.*
+*密钥库*
+**/*密钥库*
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+credentials*
+secrets*
+
+# 本地文件
+node_modules/
+.DS_Store
+*.log
+*.xlsx
+*.csv

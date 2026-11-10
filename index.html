@@ -3,7 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>建设中</title>
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' https://*.supabase.co; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'self'">
+  <title>登录 · 关键词作战台</title><link rel="icon" href="assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="assets/styles.css"><script type="module" src="assets/login.js"></script>
 </head>
-<body>建设中</body>
+<body class="login-page">
+  <a class="skip-link" href="#login-form">跳到登录表单</a>
+  <header class="public-header"><a class="brand" href="./"><span class="brand-mark" aria-hidden="true">K<span>·</span></span><span>关键词作战台</span></a><span class="header-note">让每一笔广告花费，有据可依</span></header>
+  <main class="login-layout">
+    <section class="login-story" aria-labelledby="story-title"><p class="eyebrow"><span class="blue-dot"></span> AMAZON KEYWORD WORKSPACE</p><h1 id="story-title">找到值得投入的词，<br><span>也看清该停下的花费。</span></h1><p class="story-description">把市场数据和你的广告实绩放在同一张表里。<br>先处理浪费，再留住有效的增长。</p>
+      <div class="story-steps"><div><span>01</span><p><strong>带上你的数据</strong><small>输入 ASIN，上传搜索词报表</small></p></div><div><span>02</span><p><strong>按规则作判断</strong><small>结合成本目标与市场竞争</small></p></div><div><span>03</span><p><strong>把建议变成行动</strong><small>优先查看需要控成本的词</small></p></div></div><div class="story-bottom">▤ &nbsp; 热度 · 竞争 · 广告实绩 · 打法建议</div></section>
+    <section class="auth-card" aria-labelledby="auth-title"><p class="eyebrow muted">你的关键词工作空间</p><h2 id="auth-title">欢迎回来</h2><p id="auth-description" class="muted">登录后，继续查看任务与作战报告。</p>
+      <div class="segmented" role="tablist" aria-label="登录或注册"><button id="login-tab" role="tab" aria-selected="true" aria-controls="login-form" type="button">登录</button><button id="signup-tab" role="tab" aria-selected="false" aria-controls="login-form" type="button" tabindex="-1">注册</button></div>
+      <form id="login-form" method="post" novalidate><label for="email">邮箱地址</label><input id="email" name="email" type="email" autocomplete="username" placeholder="you@example.com" required maxlength="254"><div class="label-line"><label for="password">工具账号密码</label><button id="show-password" class="text-button" type="button" aria-label="显示密码" aria-pressed="false">显示</button></div><input id="password" name="password" type="password" autocomplete="current-password" placeholder="输入本工具的专用密码" required maxlength="128" aria-describedby="password-note"><p class="field-note" id="password-note">这是本工具的账号密码，不是你的邮箱密码。</p><div id="auth-message" class="message" role="status" aria-live="polite" hidden></div><button id="auth-submit" class="button primary full" type="submit" disabled>正在连接…</button></form>
+      <div class="auth-footnote"><span aria-hidden="true">◇</span><p>你的账号只展示自己提交的任务。<br>注册后，请留意邮箱中的确认邮件。</p></div><noscript><p class="message error">请启用浏览器 JavaScript 后使用本工具。</p></noscript></section>
+  </main><footer class="public-footer"><span>关键词作战台</span><span>从数据到判断，让行动更清晰。</span></footer>
+</body>
 </html>

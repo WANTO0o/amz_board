@@ -1,4 +1,4 @@
-import {renderTable} from './report-renderer.js';
+import {renderTable,parseReport,trendCell} from './report-renderer.js';
 const titles=['关键词作战总表','自然位标杆','否定词清单','竞对对比','图片与卖点诊断','广告诊断与优化'];
 const policy="default-src 'none'; style-src 'unsafe-inline'; img-src https://*.media-amazon.com https://*.ssl-images-amazon.com https://*.images-amazon.com; base-uri 'none'; form-action 'none'; object-src 'none'";
 const allowed=new Set('HTML HEAD BODY TITLE STYLE DIV SPAN P H1 H2 H3 H4 HEADER NAV MAIN SECTION FOOTER SMALL STRONG B EM BR HR TABLE COLGROUP COL THEAD TBODY TFOOT TR TH TD UL OL LI LABEL INPUT TEXTAREA DETAILS SUMMARY SVG POLYLINE LINE CIRCLE'.split(' '));
@@ -7,6 +7,24 @@ export function hasModuleLayout(html){const doc=new DOMParser().parseFromString(
 // Keep layout and CSS controls, but never enable executable content or arbitrary navigation.
 export function sanitizeReportDocument(html){
   const doc=new DOMParser().parseFromString(html,'text/html');
+  // The worker's module HTML contains raw weekly values. Reuse the original chart
+  // renderer only inside module 01; preserve all other cells and modules.
+  const table=doc.querySelector('#section-01 table');
+  if(table&&doc.querySelector('.module-menu')&&[...table.querySelectorAll('tbody tr')].some(row=>row.children.length===16&&!row.children[4].querySelector('details')&&/\d{4}-\d{2}-\d{2}[–—-]/.test(row.children[4].textContent))){
+    const report=parseReport(html);
+    const rows=[...table.querySelectorAll('tbody tr')];
+    rows.forEach((row,i)=>{
+      const cell=row.children[4];
+      if(!cell.querySelector('details')&&report.rows[i]?.trends.length){
+        cell.classList.add('restored-trend');cell.innerHTML=trendCell(report.rows[i]);
+      }
+    });
+    if(!doc.querySelector('#restored-trend-style')){
+      const style=doc.createElement('style');style.id='restored-trend-style';
+      style.textContent=`#section-01 .restored-trend svg{display:block;max-width:100%;height:42px}#section-01 .restored-trend summary{color:#7e94b7;font-size:10px;cursor:pointer;margin-top:4px}#section-01 .restored-trend summary:focus-visible{outline:2px solid #a5bfff}#section-01 .restored-trend .trend-detail{margin-top:8px;max-height:210px;overflow-y:auto;border-top:1px solid #edf1f7;padding-top:5px}#section-01 .restored-trend .trend-detail>div{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:10px;padding:4px 0;border-bottom:1px solid #f0f3f8}#section-01 .restored-trend .trend-detail small{display:block;font-size:9px}#section-01 .restored-trend .trend-detail strong{font-size:10px;font-weight:500}`;
+      doc.head.append(style);
+    }
+  }
   for(const node of [...doc.querySelectorAll('*')]){
     if(node.tagName==='IMG'){
       const src=node.getAttribute('src');let safe=false;

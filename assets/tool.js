@@ -1,3 +1,4 @@
+import {openSettings,loadSettingsSummary} from './settings.js';
 import {client,$,message,errorText,pageURL,requireUser,dateLabel,pageFailure} from './session.js';
 import {configureBudget,openBudget} from './budget.js';
 let user,page=0,total=0,listBusy=false,submitBusy=false,selectedFile=null,pending=null;
@@ -51,7 +52,7 @@ $('task-form').addEventListener('submit',async e=>{
 async function refresh(){
   if(listBusy)return;listBusy=true;$('refresh').disabled=true;
   try{
-    let {data,error,count}=await client.from('amz_tasks').select('id,asin,status,created_at,failure_reason,report_url,progress_message,completed_keywords,total_keywords,credits_used,model_calls,amz_task_approvals(approved_at,expires_at)',{count:'exact'}).eq('user_id',user.id).order('created_at',{ascending:false}).order('id',{ascending:false}).range(page*10,page*10+9);
+    let {data,error,count}=await client.from('amz_tasks').select('id,asin,status,created_at,failure_reason,report_url,progress_message,completed_keywords,total_keywords,credits_used,model_calls,amz_task_approvals(approved_at,expires_at),amz_config_approvals(approved_at,expires_at)',{count:'exact'}).eq('user_id',user.id).order('created_at',{ascending:false}).order('id',{ascending:false}).range(page*10,page*10+9);
     if(error&&['PGRST200','PGRST204','42703'].includes(error.code)){
       ({data,error,count}=await client.from('amz_tasks').select('id,asin,status,created_at,failure_reason,report_url',{count:'exact'}).eq('user_id',user.id).order('created_at',{ascending:false}).order('id',{ascending:false}).range(page*10,page*10+9));
     }
@@ -60,7 +61,8 @@ async function refresh(){
     for(const task of data){const tr=el('tr'),state=el('td'),report=el('td');state.append(el('span',task.status,'pill '+(statuses[task.status]||'neutral')));
       if(task.status==='失败'&&task.failure_reason)state.append(el('p',task.failure_reason,'task-error'));
       if(task.status==='待处理'){
-        const approval=Array.isArray(task.amz_task_approvals)?task.amz_task_approvals[0]:task.amz_task_approvals;
+        const configuredApproval=Array.isArray(task.amz_config_approvals)?task.amz_config_approvals[0]:task.amz_config_approvals;
+        const approval=configuredApproval||(Array.isArray(task.amz_task_approvals)?task.amz_task_approvals[0]:task.amz_task_approvals);
         if(approval&&Date.parse(approval.expires_at)>Date.now())state.append(el('p','预算已确认 · 排队中','task-note'));
         else{state.append(el('p',approval?'预算已过期，请重新确认':'确认本次预算后自动开始','task-note'));
           const button=el('button',approval?'重新确认预算':'确认预算并开始','button secondary small-button budget-trigger');button.type='button';button.addEventListener('click',()=>openBudget(task));state.append(button);}
@@ -76,6 +78,8 @@ async function refresh(){
 configureBudget(refresh);
 $('refresh').addEventListener('click',refresh);$('previous').addEventListener('click',()=>{if(page>0&&!listBusy){page--;refresh();}});$('next').addEventListener('click',()=>{if(!listBusy&&(page+1)*10<total){page++;refresh();}});
 async function init(){user=await requireUser();if(!user)return;$('account-email').textContent=user.email||'';$('workspace').hidden=false;$('page-loading').hidden=true;$('submit-task').disabled=false;
+  if(new URL(location.href).searchParams.get('view')==='settings'){await openSettings();return;}
+  await loadSettingsSummary();
   try{const saved=JSON.parse(sessionStorage.getItem('amz-pending-'+user.id)||'null');if(saved?.userId===user.id&&/^[0-9a-f-]{36}$/.test(saved.id)&&/^B0[A-Z0-9]{8}$/.test(saved.asin)&&['xlsx','csv'].some(ext=>saved.path===`${user.id}/${saved.id}.${ext}`))pending=saved;}catch{}
   if(pending){if(pending.phase==='uploading')pending.phase='uncertainUpload';savePending();$('asin').value=pending.asin;$('asin').disabled=true;$('report-file').disabled=true;$('submit-task').textContent='核对并继续提交';message('submit-message','检测到上次未完成的提交，点击按钮核对并继续；会沿用原任务编号，避免重复任务。');}
   await refresh();const timer=setInterval(()=>{if(!document.hidden)refresh();},30000);addEventListener('pagehide',()=>clearInterval(timer),{once:true});document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
